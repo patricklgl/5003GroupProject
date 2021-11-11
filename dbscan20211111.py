@@ -15,6 +15,9 @@ Original file is located at
 
 import numpy as np
 import math
+from sklearn.neighbors import NearestNeighbors
+from matplotlib import pyplot as plt
+
 
 class DBScan:
 
@@ -80,23 +83,20 @@ class DBScan:
         return classifications
 
 
-def elbow(X, K):
+    def elbow(self, X, K):
 
-    from sklearn.neighbors import NearestNeighbors
-    from matplotlib import pyplot as plt
+        nbrs = NearestNeighbors(n_neighbors=4).fit(X)
+        distances, indices = nbrs.kneighbors(X)
+        print(distances)
 
-    nbrs = NearestNeighbors(n_neighbors=4).fit(X)
-    distances, indices = nbrs.kneighbors(X)
-    print(distances)
+        distances = np.sort(distances, axis=0)
+        distances = distances[:,1]
 
-    distances = np.sort(distances, axis=0)
-    distances = distances[:,1]
+        print("***************")
+        print(distances)
 
-    print("***************")
-    print(distances)
-
-    plt.plot(distances)
-    print("***************")
+        plt.plot(distances)
+        print("***************")
 
 
 
@@ -119,7 +119,7 @@ def test_dbscan():
     # Shirley data
     X = np.array([[1, 1.1], [1.2, 0.8],[0.8, 1], [3.7, 4], [3.9, 3.9], [3.6, 4.1], [10, 10], [10.1, 10.1],[10.2, 10.2],[100,100]])
     K = 4
-    elbow(X, K)
+    DB.elbow(X, K)
 
 
 test_dbscan()
