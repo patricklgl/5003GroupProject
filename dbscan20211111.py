@@ -96,7 +96,7 @@ def elbow(X, K):
 
 def test_dbscan():
 
-    # Shirkey data
+    # Shirley data
     m1 = np.matrix('1 1.2 0.8 3.7 3.9 3.6 10 10.1 10.2 100; 1.1 0.8 1 4 3.9 4.1 10 10.1 10.2 100')
     print(m1)
 
@@ -106,7 +106,7 @@ def test_dbscan():
 
     print(dbscan(m1, eps, min_points))
 
-    # Shirkey data
+    # Shirley data
     X = np.array([[1, 1.1], [1.2, 0.8],[0.8, 1], [3.7, 4], [3.9, 3.9], [3.6, 4.1], [10, 10], [10.1, 10.1],[10.2, 10.2],[100,100]])
     K = 4
     elbow(X, K)
