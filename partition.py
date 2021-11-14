@@ -18,18 +18,77 @@
 
 # Create a class with 2 methods spilt and enlarge as mentioned 
 
-Class Partition(object):
-  def __init__(self, data):
-    self = self
+class Partition(object):
+  def __init__(self, data, partition_num, eps, method):
+
+    # assuming data is in 2D    
+    if len(data) != 2 or len(data[0]) != len(data[1]):
+      print('Error: Only 2D data is supported. Expected same x and y dimension')
+      exit(-1)
+    
+    data.cache()
+
+    self.partition_num = partition_num
+    self.eps = eps
+
+    if method not in ('spatial split'):
+      print('Error: Unknown method', method)
+      exit(-1)
+      
+    self.method = method
+
    
 #  def create_partitions(self, data, box):
-  
-  def spilt(self, data):
-    return
     
-  
-  def enlarge(self, data):
-    return 
-  
+  def split(self, data):
+
+    if len(data[0]) <= 0:
+      # nothing to do
+      return data
+
+    if self.method == 'spatial split':
+      # find the range
+      minX = min(data[0])
+      maxX = max(data[0])
+      minY = min(data[1])
+      maxY = max(data[1])
+
+      # get the factor list of the partition num to separate the space for x and y more evenly
+      factors = []
+      for factor in range(1, self.partition_num+1):
+        if self.partition_num % factor == 0:
+          factors.append(factor)
+
+      # default 1 x partition_num  
+      x_partition_num = factors(len(factors) // 2)
+      y_partition_num = factors(len(factors) // 2 +1)
+
+      # error checking
+      if x_partition_num * y_partition_num != self.partition_num:
+        print('Error: Incorrect x y partition', x_partition_num, y_partition_num)
+        exit(-1)
+      
+      # split the x range by x_partition_num and that of y 
+      
+      x_coordinates = y_coordinates =  []
+
+      for i in range(x_partition_num):
+        interval = round((maxX - minX) / x_partition_num)
+        x_coordinates.append(minX + i* interval)
+
+      for i in range(y_partition_num):
+        interval = round((maxY - minY) / y_partition_num)
+        y_coordinates.append(minY + i * interval)
+
+      partitioned_data = []
+      
+
+
+    return data 
+
+  def expand(data, eps):
+    # expand each partition by eps 
+    return data
+    
 # Do the partition
 
