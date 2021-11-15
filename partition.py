@@ -80,11 +80,48 @@ class Partition(object):
         interval = round((maxY - minY) / y_partition_num)
         y_coordinates.append(minY + i * interval)
 
-      partitioned_data = []
-      
+      # I will push the partition class ID here 
+      data.append([])
 
+      # Partition ID
+      #  2 5 8 ...
+      #  1 4 7 ...
+      #  0 3 6 ...
+      id_mapping = []      
+      counter = 0 
+      for i in range(x_partition_num):
+        ylist = []
+        for j in range(y_partition_num):
+          ylist.append(counter)
+          counter +=1
+        id_mapping.append(ylist)
 
-    return data 
+      for data_point in range(len(data[0])):
+        mapx = x_partition_num - 1
+        mapy = y_partition_num - 1
+        for i in range(len(x_coordinates)):
+          if data[0][data_point] < x_coordinates[i]:
+            mapx = i
+            break
+        for j in range(len(x_coordinates)):
+          if data[1][data_point] < y_coordinates[i]:
+            mapy = j
+            break
+        
+        
+        data[2].append(id_mapping[mapx][mapy])
+
+      border_coordinates = []
+      for i in range(len(x_coordinates)):
+        for j in range(len(y_coordinates)):
+          previous_x = 0 if i == 0 else x_coordinates[i-1]
+          previous_y = 0 if j == 0 else y_coordinates[j-1]
+          border_coordinates.append((previous_x, previous_y, x_coordinates[i], y_coordinates[j]))
+    # Sample output for partitioner
+    # [[  1.    1.2   0.8   3.7   3.9   3.6  10.   10.1  10.2 100. ]
+    #  [  1.1   0.8   1.    4.    3.9   4.1  10.   10.1  10.2 100. ]
+    #  [  1     0     3     4     4     5     2      4     4    9]]
+    return data, border_coordinates 
 
   def expand(data, eps):
     # expand each partition by eps 
