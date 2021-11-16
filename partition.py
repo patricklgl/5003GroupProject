@@ -26,7 +26,7 @@ class Partition(object):
       print('Error: Only 2D data is supported. Expected same x and y dimension')
       exit(-1)
     
-    data.cache()
+    # data.cache()
 
     self.partition_num = partition_num
     self.eps = eps
@@ -60,8 +60,8 @@ class Partition(object):
           factors.append(factor)
 
       # default 1 x partition_num  
-      x_partition_num = factors(len(factors) // 2)
-      y_partition_num = factors(len(factors) // 2 +1)
+      x_partition_num = factors[len(factors) // 2-1]
+      y_partition_num = factors[len(factors) // 2]
 
       # error checking
       if x_partition_num * y_partition_num != self.partition_num:
@@ -70,7 +70,8 @@ class Partition(object):
       
       # split the x range by x_partition_num and that of y 
       
-      x_coordinates = y_coordinates =  []
+      x_coordinates = []
+      y_coordinates = []
 
       for i in range(x_partition_num):
         interval = round((maxX - minX) / x_partition_num)
@@ -101,22 +102,21 @@ class Partition(object):
         mapy = y_partition_num - 1
         for i in range(len(x_coordinates)):
           if data[0][data_point] < x_coordinates[i]:
-            mapx = i
+            mapx = i-1
             break
-        for j in range(len(x_coordinates)):
+        for j in range(len(y_coordinates)):
           if data[1][data_point] < y_coordinates[i]:
-            mapy = j
+            mapy = j-1
             break
-        
-        
+
         data[2].append(id_mapping[mapx][mapy])
 
       border_coordinates = []
       for i in range(len(x_coordinates)):
         for j in range(len(y_coordinates)):
-          previous_x = 0 if i == 0 else x_coordinates[i-1]
-          previous_y = 0 if j == 0 else y_coordinates[j-1]
-          border_coordinates.append((previous_x, previous_y, x_coordinates[i], y_coordinates[j]))
+          next_x = maxX if i == len(x_coordinates)-1 else x_coordinates[i+1]
+          next_y = maxY if j == len(y_coordinates)-1 else y_coordinates[j+1]
+          border_coordinates.append((x_coordinates[i], y_coordinates[j], next_x, next_y))
     # Sample output for partitioner
     # [[  1.    1.2   0.8   3.7   3.9   3.6  10.   10.1  10.2 100. ]
     #  [  1.1   0.8   1.    4.    3.9   4.1  10.   10.1  10.2 100. ]
@@ -128,4 +128,12 @@ class Partition(object):
     return data
     
 # Do the partition
+if __name__ == '__main__':
+  x = [[1, 1.2, 0.8, 3.7, 3.9, 3.6,  10., 10.1,  10.2, 100.],
+    [  1.1, 0.8, 1, 4, 3.9, 4.1, 10, 10.1,  10.2, 100. ]]
 
+  par_obj = Partition(x, 2, 0, 'spatial split')
+  result, borders = par_obj.split(x)
+  print(result)
+  print()
+  print(borders)
