@@ -1,28 +1,8 @@
-# the project uses "BoundingBox" in geometry.py
-# for performing data points partition, 
-# m I need to know the structure for plotting the graph.
-
-# Sample
-# [1, 1, 1, 2, 2, 2, 3, 3, 3, None]
-# it means point 1,2,3 in cluster 1
-# point 4,5,6 in cluster 2
-# None = outlier 
-
 # Sample input for partitioner
-# [[  1.  ,  1.2 ,  0.8   3.7   3.9   3.6  10.   10.1  10.2 100. ]
-#  [  1.1 ,  0.8 ,  1.    4.    3.9   4.1  10.   10.1  10.2 100. ]]
-
-# [[  1.    1.2   0.8 ],
-#  [  1.1   0.8   1.  ]]
-# [
-#   [x],[y]
-# ]
+# [[1, 1.2, 0.8, 3.7, 3.9, 3.6, 10.0, 10.1, 1.2, 13.0],
+#  [1.1, 0.8, 1, 4, 3.9, 4.1, 10, 10.1, 10.2, 1.0]]
 
 # X = np.array([[1, 1.1], [1.2, 0.8],[0.8, 1], [3.7, 4], [3.9, 3.9], [3.6, 4.1], [10, 10], [10.1, 10.1],[10.2, 10.2],[100,100]])
-
-
-
-# Create a class with 2 methods spilt and enlarge as mentioned 
 
 class Partition(object):
   def __init__(self, data, partition_num, eps, method):
@@ -36,6 +16,7 @@ class Partition(object):
 
     self.partition_num = partition_num
     self.eps = eps
+    self.ROUND_DIGIT = 6
 
     if method not in ('spatial split'):
       print('Error: Unknown method', method)
@@ -43,9 +24,27 @@ class Partition(object):
       
     self.method = method
 
-   
-#  def create_partitions(self, data, box):
+  def create_partitions(self, data, border_coordinates):
+    allow_overlapping_boxes = True
+
+    partition_num = len(border_coordinates)
+    partitioned_data = [[ [] for j in range(2)] for i in range(partition_num)]
     
+    for i in range(len(data[0])):
+      x = data[0][i]
+      y = data[1][i]
+      for k in range(partition_num):
+        # box = (x0,y0, x1,y1)
+        box = border_coordinates[k]
+
+        if x < box[2] and x >= box[0] and y < box[3] and y >= box[1]:
+          partitioned_data[k][0].append(data[0][i])
+          partitioned_data[k][1].append(data[1][i])
+          if not allow_overlapping_boxes:
+            break
+
+    return partitioned_data
+
   def split(self, data):
 
     if len(data[0]) <= 0:
@@ -91,70 +90,59 @@ class Partition(object):
         interval = round((maxY - minY) / y_partition_num)
         y_coordinates.append(minY + i * interval)
 
+      # Partition ID
+      #  2 5 8 ...
+      #  1 4 7 ...
+      #  0 3 6 ...
+
       # output the border coordinates 
       border_coordinates = []
       for i in range(len(x_coordinates)):
         for j in range(len(y_coordinates)):
           # next x y is the next item in coordinate list
           # if already the last item, the next item will be the right data boundary (maxX or maxY)
-          next_x = maxX if i == len(x_coordinates)-1 else x_coordinates[i+1]
-          next_y = maxY if j == len(y_coordinates)-1 else y_coordinates[j+1]
+          # +0.01 here is to make sure no data touch the top/right boundary for easy partition logic
+          next_x = round(maxX+0.01,self.ROUND_DIGIT) if i == len(x_coordinates)-1 else x_coordinates[i+1]
+          next_y = round(maxY+0.01,self.ROUND_DIGIT) if j == len(y_coordinates)-1 else y_coordinates[j+1]
           border_coordinates.append(
               (x_coordinates[i], y_coordinates[j], next_x, next_y))
 
-      # Partition ID
-      #  2 5 8 ...
-      #  1 4 7 ...
-      #  0 3 6 ...
-      # id_mapping constructs the 2D boxes, where it stores the correspondind ID of each box
-      id_mapping = []      
-      counter = 0 
-      for i in range(x_partition_num):
-        ylist = []
-        for j in range(y_partition_num):
-          ylist.append(counter)
-          counter +=1
-        id_mapping.append(ylist)
-
-      # I will push the partition class ID here 
-      data.append([])
-
-      for data_point in range(len(data[0])):
-        mapx = x_partition_num - 1
-        mapy = y_partition_num - 1
-        for i in range(1, len(x_coordinates)):
-          if data[0][data_point] < x_coordinates[i]:
-            mapx = i-1
-            break
-        for j in range(1, len(y_coordinates)):
-          if data[1][data_point] < y_coordinates[j]:
-            mapy = j-1
-            break
-
-        data[2].append(id_mapping[mapx][mapy])
-
+      partitioned_data = self.create_partitions(data, border_coordinates)
 
     # Sample output for partitioner
-    # [[  1.    1.2   0.8   3.7   3.9   3.6  10.   10.1  10.2 100. ]
-    #  [  1.1   0.8   1.    4.    3.9   4.1  10.   10.1  10.2 100. ]
-    #  [  1     0     3     4     4     5     2      4     4    9]]
+    # [
+    #   [
+    #     [1, 1.2, 0.8, 3.7, 3.9, 3.6], 
+    #     [1.1, 0.8, 1, 4, 3.9, 4.1]
+    #   ], [
+    #     [1.2], 
+    #     [10.2]
+    #   ], [
+    #     [13.0], 
+    #     [1.0]
+    #   ], [
+    #     [10.0, 10.1], 
+    #     [10, 10.1]
+    #   ]
+    # ]
 
     # border_coordinates
     # [(0.8, 0.8, 100.0, 50.8), (0.8, 50.8, 100.0, 100.0)]
 
-    return data, border_coordinates 
+    return partitioned_data, border_coordinates
 
   def expand(self, data, border_coordinates):
     # expand each partition by eps 
     for i in range(len(border_coordinates)):
       border_coordinate = list(border_coordinates[i])
-      border_coordinate[0] = round(border_coordinate[0] - self.eps, 6)
-      border_coordinate[1] = round(border_coordinate[1] - self.eps, 6)
-      border_coordinate[2] = round(border_coordinate[2] + self.eps, 6)
-      border_coordinate[3] = round(border_coordinate[3] + self.eps, 6)
-      border_coordinates[i] = border_coordinate
+      border_coordinate[0] = round(border_coordinate[0] - self.eps, self.ROUND_DIGIT)
+      border_coordinate[1] = round(border_coordinate[1] - self.eps, self.ROUND_DIGIT)
+      border_coordinate[2] = round(border_coordinate[2] + self.eps, self.ROUND_DIGIT)
+      border_coordinate[3] = round(border_coordinate[3] + self.eps, self.ROUND_DIGIT)
+      border_coordinates[i] = tuple(border_coordinate)
 
-    return data, border_coordinates
+      partitioned_data = self.create_partitions(data,border_coordinates)
+    return partitioned_data, border_coordinates
     
 # Do the partition
 if __name__ == '__main__':
@@ -166,8 +154,11 @@ if __name__ == '__main__':
   par_obj = Partition(x, PARTITION, EPS, 'spatial split')
   result, borders = par_obj.split(x)
 
-  print(result)
   print()
-  print(borders)
+  print('==================Debug Ground==================')
+  print('Result', result)
+  print('Border', borders)
+  print()
   result, borders = par_obj.expand(x,borders)
-  print(borders)
+  print('After expand bounding box',result)
+  print('Border', borders)
