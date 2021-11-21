@@ -13,7 +13,7 @@ if __name__ == '__main__':
     m1 = np.matrix(m)
     print (m1)
     
-    eps = 2
+    eps = 2300
     min_points = 2
 
     DB = DBScan()
