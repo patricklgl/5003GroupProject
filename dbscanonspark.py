@@ -9,7 +9,7 @@ if __name__ == '__main__':
     output = pd.T
     output.to_csv(r'SmallDataSet.txt', header=None, index=None)
 
-    m = pandas.read_csv('SmallDataSet.txt', sep=" ", header=None)
+    m = pandas.read_csv('SmallDataSet.txt', sep=",", header=None)
     m1 = np.matrix(m)
     print (m1)
     
@@ -19,3 +19,7 @@ if __name__ == '__main__':
     DB = DBScan()
 
     print(DB.dbscan(m1, eps, min_points))
+    
+    X = np.array(pd)
+    K = 4
+    DB.elbow(X, K)
