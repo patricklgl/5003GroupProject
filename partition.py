@@ -3,6 +3,13 @@
 #  [1.1, 0.8, 1, 4, 3.9, 4.1, 10, 10.1, 10.2, 1.0]]
 
 # X = np.array([[1, 1.1], [1.2, 0.8],[0.8, 1], [3.7, 4], [3.9, 3.9], [3.6, 4.1], [10, 10], [10.1, 10.1],[10.2, 10.2],[100,100]])
+# source ~/.bash_profile
+# source ~/.bashrc
+
+import findspark
+findspark.init()
+from pyspark import SparkContext, SparkConf
+sc = SparkContext()
 
 class Partition(object):
   def __init__(self, data, partition_num, eps, method):
@@ -24,7 +31,7 @@ class Partition(object):
       
     self.method = method
 
-  def create_partitions(self, data, border_coordinates):
+  def create_partitions_without_spark(self, data, border_coordinates):
     allow_overlapping_boxes = True
 
     partition_num = len(border_coordinates)
@@ -45,6 +52,36 @@ class Partition(object):
 
     return partitioned_data
 
+  def create_partitions_with_spark(self, data, border_coordinates):
+    allow_overlapping_boxes = True
+
+    partition_num = len(border_coordinates)
+
+    # may use unzip to pack the data, but not sure if it is parallel.
+    rdd = sc.parallelize(zip(*data))
+
+    # without using zip, you can try the following instead
+    # x_d = sc.parallelize(x[0]).zipWithIndex().map(lambda x: (x[1],x[0]))
+    # y_d = sc.parallelize(x[1]).zipWithIndex().map(lambda x: (x[1],x[0]))
+    # rdd = x_d.join(y_d)
+
+    def label_partition(element):
+      new_elements = []
+      for k in range(partition_num):
+          box = border_coordinates[k]
+          x = element[0]
+          y = element[1]
+          if x < box[2] and x >= box[0] and y < box[3] and y >= box[1]:
+              new_elements.append((element, k))
+              if not allow_overlapping_boxes:
+                break
+          
+      return new_elements
+
+    partitioned_rdd = rdd.map(label_partition).flatMap(lambda x: x).map(lambda x: (str(x[1]),x[0])).partitionBy(4,lambda k: int(k[0])).map(lambda x: x[1])
+    # partitioned_rdd.glom().collect()
+
+    return partitioned_rdd
   def split(self, data):
 
     if len(data[0]) <= 0:
@@ -107,7 +144,7 @@ class Partition(object):
           border_coordinates.append(
               (x_coordinates[i], y_coordinates[j], next_x, next_y))
 
-      partitioned_data = self.create_partitions(data, border_coordinates)
+      partitioned_data = self.create_partitions_with_spark(data, border_coordinates)
 
     # Sample output for partitioner
     # [
@@ -141,7 +178,7 @@ class Partition(object):
       border_coordinate[3] = round(border_coordinate[3] + self.eps, self.ROUND_DIGIT)
       border_coordinates[i] = tuple(border_coordinate)
 
-      partitioned_data = self.create_partitions(data,border_coordinates)
+      partitioned_data = self.create_partitions_with_spark(data,border_coordinates)
     return partitioned_data, border_coordinates
     
 # Do the partition
@@ -156,9 +193,9 @@ if __name__ == '__main__':
 
   print()
   print('==================Debug Ground==================')
-  print('Result', result)
+  print('Result', result.glom().collect())
   print('Border', borders)
   print()
   result, borders = par_obj.expand(x,borders)
-  print('After expand bounding box',result)
+  print('After expand bounding box',result.glom().collect())
   print('Border', borders)
