@@ -11,14 +11,14 @@ Other Python packages:
 - seaborn
 
 You may install the packages using command： 
-> pip install <package>
+> pip install &lt;package&gt;
 
 
 DataSet from: http://cs.joensuu.fi/sipu/datasets/
-3000.txt: (known as A1 in the website) N=3000 vectors, k=20 clusters
-7500.txt: (known as A3 in the website) N=7500 vectors, k=50 clusters
-birch3.txt: N=100,000 vectors, k=100 clusters
+- 3000.txt: (known as A1 in the website) N=3000 vectors, k=20 clusters
+- 7500.txt: (known as A3 in the website) N=7500 vectors, k=50 clusters
+- birch3.txt: N=100,000 vectors, k=100 clusters
 
 Reference: 
-https://github.com/bwoneill/pypardis
-https://github.com/zhaokanghuiasd/DBScan-in-Spark
+- https://github.com/bwoneill/pypardis
+- https://github.com/zhaokanghuiasd/DBScan-in-Spark
