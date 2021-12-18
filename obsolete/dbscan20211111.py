@@ -122,4 +122,4 @@ def test_dbscan():
     DB.elbow(X, K)
 
 
-# test_dbscan()
+test_dbscan()

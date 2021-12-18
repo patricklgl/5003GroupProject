@@ -13,6 +13,12 @@ Other Python packages:
 You may install the packages using command： 
 > pip install &lt;package&gt;
 
+Serial version of DBSCAN
+- Serial_version.ipynb
+
+Spark version of DBSCAN
+- Spark_version.ipynb
+
 ## Reference
 
 DataSet from: http://cs.joensuu.fi/sipu/datasets/
