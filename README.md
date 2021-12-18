@@ -13,6 +13,7 @@ Other Python packages:
 You may install the packages using command： 
 > pip install &lt;package&gt;
 
+## Reference
 
 DataSet from: http://cs.joensuu.fi/sipu/datasets/
 - 3000.txt: (known as A1 in the website) N=3000 vectors, k=20 clusters
